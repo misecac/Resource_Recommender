@@ -3,9 +3,12 @@ from random import randint
 class DataExplorer():
     scale = 5
     num_elements = 24*(60/scale)
-    def __init__(self,cron_dict,duration):
-        self.cron_data = cron_dict
+
+    def __init__(self,node_name,cron_data,duration):
+        self.cron_data = cron_data
         self.duration = duration
+        self.node_name = node_name
+        self.schedule_dict = {}
 
     def IsAvailable(self,data_day,data_week,start,end,week_id):
         traversed = {}
@@ -59,19 +62,21 @@ class DataExplorer():
         end   = start + (duration/scale)
         return start, end
     
-    def generate_schedule_table(self,cron_data={},duration=0,map_day=['0']*num_elements,map_week={}):
+    def generate_schedule_table(self):
+        map_day=['0']*self.num_elements
+        map_week={}
         num_elements = DataExplorer.num_elements
-        for cron in cron_data:        
+        for cron in self.cron_data:        
             cron_prefix = 'c' + str(randint(1,999))
             week_schedule = [0,0,0,0,0,0,0]
-            value = cron_data[cron]
-            if not self.IsScheduleAvailable(cronlist=cron_data[cron],duration=duration,data_day=map_day,data_week=map_week, week_id=cron):
-                print cron_data[cron]
+            value = self.cron_data[cron]
+            if not self.IsScheduleAvailable(cronlist=self.cron_data[cron],duration=self.duration,data_day=map_day,data_week=map_week, week_id=cron):
+                print self.cron_data[cron]
                 print 'unavailable'
                 break
             
             for index in range(0,len(value)):            
-                start,end = self.get_boundary_times(value[index],duration)
+                start,end = self.get_boundary_times(value[index],self.duration)
                 #isAvailable = IsAvailable(map_day,map_week,start,end,cron)
                     
                 if end > num_elements:
@@ -98,29 +103,41 @@ class DataExplorer():
                 week_schedule[int(cron)] = 1
             map_week[cron_prefix] = week_schedule
             week_schedule=[]
+        self.schedule_dict[self.node_name] = {'schedule_day':map_day,
+                                         'schedule_week':map_week}
         return map_day,map_week
+
+    def get_schedule_table(self):
+        return self.schedule_dict
     
-    def Print_Data(self,map_day,map_week): 
+    def Print_Data(self,schedule_data):
         start = 0
         scale = DataExplorer.scale
-        durn = (60/scale)
-        for i in range(0,len(map_day)/durn):
-            end = start + durn
-            print i,"=>",map_day[start:end]
-            start = end        
-        print "\n",map_week
-
+        durn = (60 / scale)
+        for sdata in schedule_data:
+            for i in range(0,len(schedule_data[sdata]['schedule_day'])/durn):
+                end = start + durn
+                print i,"=>",schedule_data[sdata]['schedule_day'][start:end]
+                start = end        
+            print "\n",schedule_data[sdata]['schedule_week']
+    
 def Main():
-    cron_data_1 = {'1':['00:00']}
+
+    cron_data_1 = {'1':['00:00'],'2':['00:00']}
     duration_1 = 36*60
+    
+    dex1 = DataExplorer(node_name="NodeA",cron_data=cron_data_1,duration=duration_1)
+    dex1.generate_schedule_table()
+    schedule_table_1 = dex1.get_schedule_table()
+    dex1.Print_Data(schedule_table_1)
+    
     cron_data_2 = {'2':['00:00']}
     duration_2 = 24*60
-    dex1 = DataExplorer(cron_data_1,duration_1)
-    map_day_updated,map_week_updated = dex1.generate_schedule_table(cron_data=cron_data_1,duration=duration_1)
-    dex1.Print_Data(map_day_updated,map_week_updated)
-    dex2 = DataExplorer(cron_data_2,duration_2)
-    map_day_1,map_week_1 = dex2.generate_schedule_table(cron_data=cron_data_2,duration=duration_2)    
-    dex2.Print_Data(map_day_1,map_week_1)
-
+    
+    dex2 = DataExplorer(node_name="NodeB",cron_data=cron_data_2,duration=duration_2)
+    dex2.generate_schedule_table()
+    schedule_table_2 = dex2.get_schedule_table()
+    dex2.Print_Data(schedule_table_2)
+    
 Main()    
 
