@@ -38,18 +38,31 @@ def fetch_cron_data():
 
 def parse_cron_data():
     for node in Data:
+        print node
         for cron in Data[node]:
             attributes = cron.split(' ')            
             mins_id = attributes[0]
             time_id  = attributes[1]
             week_id = attributes[4]
-            expand_elements(week=week_id,time=time_id,minutes=mins_id)
-            print week_id,mins_id,time_id
+            weeks = expand_elements(week=week_id,time=time_id,minutes=mins_id)
+            print weeks
             
 def expand_elements(week = '',time='',minutes=''):
-     pass
+     week_ids = get_range_values(week)
+     time_ids = get_range_values(time)
+     minute_ids = get_range_values(minutes,isMins=True)
+     time_list = []
+     weeks = {}
+     
+     for mid in minute_ids:         
+         for tid in time_ids:             
+             time_list.append(str(tid)+':'+str(mid))     
+     for wid in week_ids:
+         weeks[wid] = time_list
+     return weeks    
+    
 
-def get_range_values(value):
+def get_range_values(value,isMins=False):
     start = 0
     end = 0
     returnvalues = []
@@ -58,12 +71,15 @@ def get_range_values(value):
         end   = int(value.split('-')[1])
         for index in range(start,end):
             returnvalues.append(index)
-    if value.__contains__(','):
+    elif value.__contains__(','):
         returnvalues = value.split(',')
-    print returnvalues
+    else:
+        if (value == 'H' or value == '*') and isMins:
+            returnvalues.append('0')
+        else:
+            returnvalues.append(value)
+    return returnvalues
     
-
-get_range_values('10-15')
-get_range_values('2,6')
-#fetch_cron_data()
-#parse_cron_data()
+#expand_elements(week='1,3',time='10,12,15,17',minutes='30,45')
+fetch_cron_data()
+parse_cron_data()
