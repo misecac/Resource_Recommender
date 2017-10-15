@@ -8,6 +8,7 @@ def IsAvailable(data_day,data_week,start,end,week_id):
     sched_ids = []
     sched_id_dict = {}
     result = True
+        
     for i in range(start,end):
         if data_day[i] != '0':            
             if data_day[i].__contains__(','):
@@ -18,24 +19,37 @@ def IsAvailable(data_day,data_week,start,end,week_id):
                 sched_id_dict[data_day[i]] = ''
 
     for schedule_id in sched_id_dict:
-        result = result and not data_week[schedule_id][int(week_id)]        
+        if week_id == '*':
+            for index in range(0,7):                
+                result = result and not data_week[schedule_id][index]
+        else:
+            result = result and not data_week[schedule_id][int(week_id)]        
     return result
-        
-        
-def generate_schedule_table(cron_data={},duration=0,map_day=['0']*num_elements,map_week={}):
+"""
+def IsScheduleAvailable(data_day=[],data_week={},week_id='',cronlist=[],duration=0):
+    for index in cronlist:
+        start,end = get_boundary_times(index,duration)
+        print start,end
+    pass
+"""
+def get_boundary_times(cronstring='',duration=0):
+    value_hour = int(cronstring.split(':')[0])
+    value_min = int(cronstring.split(':')[1])
+    start = (value_hour * (60/scale)) +(int(value_min)/scale)
+    end   = start + (duration/scale)
+    return start, end
+    
+def generate_schedule_table(cron_data={},duration=[],map_day=['0']*num_elements,map_week={}):
     for cron in cron_data:        
         cron_prefix = 'c' + str(randint(1,999))
         week_schedule = [0,0,0,0,0,0,0]
         value = cron_data[cron]
-
-        for index in range(0,len(value)):
-            value_hour = int(value[index].split(':')[0])
-            value_min  = int(value[index].split(':')[1])
-            start = (value_hour * (60/scale)) +(int(value_min)/scale)
-            end   = start + (duration/scale)
+        #IsScheduleAvailable(cronlist=cron_data[cron],duration,)
+        for index in range(0,len(value)):            
+            start,end = get_boundary_times(value[index],duration[index])
             isAvailable = IsAvailable(map_day,map_week,start,end,cron)
             if (not isAvailable):
-                print "Cannot allocate", cron_data[cron]
+                print "Cannot allocate - Inner Loop", cron_data[cron]
                 break
                 
             if end > num_elements:
@@ -73,17 +87,17 @@ def Print_Data(map_day,map_week):
 
 def Main():
     cron_data = {'1':['22:30','23:30'],
-             '2':['22:30','23:30'],
-             '*':['01:00','02:00','04:00','08:00']}
-    duration = 30
+                 '2':['22:00'],
+             '*':['02:00']}
+    duration = [30,15,30]
     
     map_day_updated,map_week_updated = generate_schedule_table(cron_data=cron_data,duration=duration)
-    Print_Data(map_day_updated,map_week_updated)
+    #Print_Data(map_day_updated,map_week_updated)
 
-    cron_data = {'4':['23:00','22:30'],'3':['22:30']}
-    duration = 30
+    cron_data = {'3':['02:15']}
+    duration = [15]
     map_day_1,map_week_1 = generate_schedule_table(cron_data=cron_data,duration=duration)    
-    Print_Data(map_day_1,map_week_1)
+    #Print_Data(map_day_1,map_week_1)
 
 Main()    
 
