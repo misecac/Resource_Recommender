@@ -8,15 +8,19 @@ def IsAvailable(data_day,data_week,start,end,week_id):
     sched_ids = []
     sched_id_dict = {}
     result = True
-        
     for i in range(start,end):
         if data_day[i] != '0':            
             if data_day[i].__contains__(','):
                 sched_ids = data_day[i].split(',')
                 for element in sched_ids:
+                    if element.__contains__('!'):
+                        element = element.replace('!','')
                     sched_id_dict[element] = ''
-            else:    
-                sched_id_dict[data_day[i]] = ''
+            else:
+                sched_id = data_day[i]
+                if sched_id.__contains__('!'):
+                    sched_id = sched_id.replace('!','')
+                sched_id_dict[sched_id] = ''
 
     for schedule_id in sched_id_dict:
         if week_id == '*':
@@ -27,10 +31,19 @@ def IsAvailable(data_day,data_week,start,end,week_id):
     return result
 
 def IsScheduleAvailable(data_day=[],data_week={},week_id='',cronlist=[],duration=0):
+    newend = 0    
     result = True
+    end = 0
     for index in cronlist:
         start,end = get_boundary_times(index,duration)
-        result = result and IsAvailable(data_day,data_week,start,end,week_id) 
+        if end > num_elements:
+            newend = end - num_elements
+            end = num_elements
+            result = result and IsAvailable(data_day,data_week,0,newend,week_id)
+            result = result and IsAvailable(data_day,data_week,start,end,week_id)
+        else:
+            result = result and IsAvailable(data_day,data_week,start,end,week_id)
+        
     return result
 
 def get_boundary_times(cronstring='',duration=0):
@@ -52,7 +65,7 @@ def generate_schedule_table(cron_data={},duration=0,map_day=['0']*num_elements,m
         
         for index in range(0,len(value)):            
             start,end = get_boundary_times(value[index],duration)
-            isAvailable = IsAvailable(map_day,map_week,start,end,cron)
+            #isAvailable = IsAvailable(map_day,map_week,start,end,cron)
                 
             if end > num_elements:
                 for i in range(start,num_elements):
@@ -63,6 +76,8 @@ def generate_schedule_table(cron_data={},duration=0,map_day=['0']*num_elements,m
                 for j in range(0,end-num_elements):
                     if map_day[j] == '0':
                         map_day[j] = "!"+cron_prefix
+                    else:
+                        map_day[j] += ",!"+cron_prefix
             else:        
                 for i in range(start,end):
                     if map_day[i] == '0':
@@ -88,17 +103,14 @@ def Print_Data(map_day,map_week):
     print "\n",map_week
 
 def Main():
-    cron_data = {'1':['22:30','23:30'],
-                 '2':['22:30'],
-             '*':['02:00']}
-    duration = 30
+    cron_data = {'1':['22:30']}
+    duration = 120
     
     map_day_updated,map_week_updated = generate_schedule_table(cron_data=cron_data,duration=duration)
     Print_Data(map_day_updated,map_week_updated)
 
-    cron_data = {'*':['02:30'],
-                 '1':['22:30']}
-    duration = 15
+    cron_data = {'3':['22:30']}
+    duration = 120
     map_day_1,map_week_1 = generate_schedule_table(cron_data=cron_data,duration=duration)    
     Print_Data(map_day_1,map_week_1)
 
