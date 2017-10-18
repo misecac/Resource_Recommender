@@ -125,7 +125,3 @@ class DataParser():
     
     def get_cron_data(self):
         return self.Data_Parsed
-        
-dp = DataParser()
-dp.fetch_cron_data()
-print dp.get_cron_data()

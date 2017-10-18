@@ -90,7 +90,7 @@ class DataExplorer():
             print i,"=>",schedule_data[start:end]
             start = end        
              
-
+"""
 def Main():
     slave_data = [{
                     'slave_name':"NodeA",
@@ -112,3 +112,4 @@ def Main():
         dex1.Print_Data(sched_data['2'])    
 
 Main()
+"""
