@@ -92,12 +92,23 @@ class DataExplorer():
              
 
 def Main():
-    cron_data_1 = {'*':['23:00','13:30']}
-    duration_data_1 = {'*':[3*60,30]}
-    dex1 = DataExplorer(node_name="NodeA",cron_data=cron_data_1,duration_data=duration_data_1)
-    dex1.populate_schedule_table()
-    sched_data = dex1.get_schedule_data()
-    dex1.Print_Data(sched_data['0'])
-    dex1.Print_Data(sched_data['2'])    
+    slave_data = [{
+                    'slave_name':"NodeA",
+                    'cron_data' : {'*':['23:00','13:30']},
+                    'duration_data' : {'*':[3*60,30]}
+                  },
+                  {
+                    'slave_name':"NodeB",
+                    'cron_data' : {'*':['02:00']},
+                    'duration_data' : {'*':[3*60]}
+                      
+                  }]
+
+    for sdata in slave_data:        
+        dex1 = DataExplorer(node_name="NodeB",cron_data=sdata['cron_data'],duration_data=sdata['duration_data'])
+        dex1.populate_schedule_table()
+        sched_data = dex1.get_schedule_data()
+        dex1.Print_Data(sched_data['0'])
+        dex1.Print_Data(sched_data['2'])    
 
 Main()
