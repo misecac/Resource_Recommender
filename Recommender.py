@@ -1,8 +1,11 @@
 import pickle
+import sys
 from DataParser import DataParser
 from CronsDataStructure import DataExplorer
 
 class Recommender():
+    scale = 5
+    num_elements = 24 * (60 / scale)
     def __init__(self,cron='',duration=0):
         self.picklefile = "C:\\mydata\\Bits\\Courses\\4thSem\\Dissertation\\repository\\data.pickle"
         handle = open(self.picklefile,'rb')
@@ -75,6 +78,8 @@ class Recommender():
         return start, end    
 
     def check_if_slots_available(self):
+        num_elements = Recommender.num_elements
+        scale        = Recommender.scale
         parsed_input = self.input_data
         parsed_input_boundary = {}
         for week in parsed_input:
@@ -88,8 +93,16 @@ class Recommender():
             isavailable = True
             for week_id in parsed_input_boundary:
                 for time_element in parsed_input_boundary[week_id]:
-                    isavailable = isavailable and self.isAvailable(searchlist=self.schedule_data[node][week_id],start=time_element['start'],end=time_element['end'])
-                    print node,week_id,time_element,isavailable
+                    start_index = time_element['start']
+                    end_index   = time_element['end']
+                    if end_index < num_elements:
+                        isavailable = isavailable and self.isAvailable(searchlist=self.schedule_data[node][week_id],start=start_index,end=end_index)
+                    else:
+                        isavailable = isavailable and self.isAvailable(searchlist=self.schedule_data[node][week_id],start=start_index,end=num_elements)
+                        newstart  = 0
+                        newend    = end_index - num_elements
+                        newweek_id = str((int(week_id) + 1) % 7)
+                        isavailable = isavailable and self.isAvailable(searchlist=self.schedule_data[node][newweek_id],start=newstart,end=newend)                        
             if isavailable:
                 return node
                         
@@ -104,8 +117,20 @@ class Recommender():
                 found = found and False
         return found
         
-    
-r = Recommender('00 5-9 * * *',30)
-#print r.check_if_slots_available()
-r2 = Recommender('55 8 * * *',240)
-print r2.check_if_slots_available()
+
+
+cron_string = sys.argv[1]
+duration    = sys.argv[2]
+#cron_string = "30 18 * * 1"
+#duration    = 360
+r = Recommender(cron_string,int(duration))
+slave_available = r.check_if_slots_available()
+
+print "\n\n*****************************"
+print "******* RECOMMENDATION ******"
+print "*****************************"
+if slave_available:
+    print "NODE AVAILABLE - \"%s\"" %(slave_available)
+else:
+    print "NO Slave nodes available for the input cron.\nConsider Cloning a new VM"
+print "\n\n\n"
