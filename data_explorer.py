@@ -63,7 +63,7 @@ class DataExplorer():
         return start, end
     
     def generate_schedule_table(self):
-        map_day=['0']*self.num_elements
+        map_day=['0']*DataExplorer.num_elements
         map_week={}
         num_elements = DataExplorer.num_elements
         for cron in self.cron_data:        
@@ -120,17 +120,19 @@ class DataExplorer():
                 print i,"=>",schedule_data[sdata]['schedule_day'][start:end]
                 start = end        
             print "\n",schedule_data[sdata]['schedule_week']
-    
+
+
 def Main():
 
-    cron_data_1 = {'1':['00:00'],'2':['00:00']}
-    duration_1 = 36*60
+    cron_data_1 = {'1':['00:00','06:00','18:00']}
+    duration_1 = 60
     
     dex1 = DataExplorer(node_name="NodeA",cron_data=cron_data_1,duration=duration_1)
     dex1.generate_schedule_table()
     schedule_table_1 = dex1.get_schedule_table()
     dex1.Print_Data(schedule_table_1)
-    
+
+    """
     cron_data_2 = {'2':['00:00']}
     duration_2 = 24*60
     
@@ -138,6 +140,5 @@ def Main():
     dex2.generate_schedule_table()
     schedule_table_2 = dex2.get_schedule_table()
     dex2.Print_Data(schedule_table_2)
-    
+    """    
 Main()    
-
