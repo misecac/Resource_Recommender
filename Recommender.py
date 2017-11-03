@@ -71,11 +71,18 @@ class Recommender():
 
     def get_boundary_times(self,cronstring='',duration=0):
         scale = 5
-        value_hour = int(cronstring.split(':')[0])
-        value_min = int(cronstring.split(':')[1])
+        value_hour = self.get_absolute_values(cronstring.split(':')[0])
+        value_min  = self.get_absolute_values(cronstring.split(':')[1])        
         start = (value_hour * (60/scale)) +(int(value_min)/scale)
         end   = start + (duration/scale)
-        return start, end    
+        return start, end
+
+    def get_absolute_values(self,value):
+        if value == '*' or value == 'H':
+            value = 0
+        else:
+            value = int(value)
+        return value
 
     def check_if_slots_available(self):
         num_elements = Recommender.num_elements
@@ -121,8 +128,6 @@ class Recommender():
 
 cron_string = sys.argv[1]
 duration    = sys.argv[2]
-#cron_string = "30 18 * * 1"
-#duration    = 360
 r = Recommender(cron_string,int(duration))
 slave_available = r.check_if_slots_available()
 
