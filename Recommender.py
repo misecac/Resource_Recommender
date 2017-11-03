@@ -14,10 +14,14 @@ class Recommender():
         self.duration = duration
         self.input_data = self.parse_cron_data()
         
-    def get_recommendation(self,cron,duration):
-        
+    def get_recommendation(self,cron,duration):        
         pass
 
+    """
+    Function parse_cron_data
+    Desc     Parsing the input cron to generate times in hour:min format
+    """
+    
     def parse_cron_data(self):
         cron = self.cron        
         cron_data = {}
@@ -33,6 +37,13 @@ class Recommender():
             else:
                 cron_data[wid] = time_list
         return cron_data
+
+    """
+    Function expand_elements
+    Desc     Substituting the cron elements and generating multiple crons for the wildcards,
+            For Ex: 4 crons will be generated from crons containing 9-12 in their elements
+    """
+    
     def expand_elements(self,week = '',time='',minutes=''):
         week_ids = self.get_range_values(week,isWeek=True)
         time_ids = self.get_range_values(time)
@@ -47,7 +58,11 @@ class Recommender():
             weeks[wid] = time_list
             wids.append(str(wid))
         return wids,time_list    
-        
+
+    """
+    Function  get_range_values
+    Desc      Utility function to expand the cron element values containing - and ,
+    """
 
     def get_range_values(self,value,isMins=False,isWeek=False):
         start = 0
@@ -69,6 +84,11 @@ class Recommender():
                 returnvalues.append(value)
         return returnvalues
 
+    """
+    Function get_boundary_times
+    Desc     Getting the start and end of the 5-min blocks from the input cronstring
+    """
+
     def get_boundary_times(self,cronstring='',duration=0):
         scale = 5
         value_hour = self.get_absolute_values(cronstring.split(':')[0])
@@ -83,6 +103,11 @@ class Recommender():
         else:
             value = int(value)
         return value
+
+    """
+    Function check_if_slots_available
+    Desc     Main logic to search the if any resource is available during the requested time slot
+    """
 
     def check_if_slots_available(self):
         num_elements = Recommender.num_elements
@@ -112,7 +137,6 @@ class Recommender():
                         isavailable = isavailable and self.isAvailable(searchlist=self.schedule_data[node][newweek_id],start=newstart,end=newend)                        
             if isavailable:
                 return node
-                        
         
                     
     def isAvailable(self,searchlist=[],start=0,end=0):
