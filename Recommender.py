@@ -14,7 +14,10 @@ class Recommender():
         self.duration = duration
         self.input_data = self.parse_cron_data()
         
-    def get_recommendation(self,cron,duration):        
+    def get_recommendations(self):
+        cron = self.cron
+        duration = self.duration
+        
         pass
 
     """
@@ -36,6 +39,7 @@ class Recommender():
                 cron_data[wid] += time_list            
             else:
                 cron_data[wid] = time_list
+        print "CRON:",cron_data
         return cron_data
 
     """
@@ -57,6 +61,7 @@ class Recommender():
         for wid in week_ids:
             weeks[wid] = time_list
             wids.append(str(wid))
+        print "WID,TLIST",wids,time_list
         return wids,time_list    
 
     """
@@ -150,9 +155,13 @@ class Recommender():
         
 
 
-cron_string = sys.argv[1]
-duration    = sys.argv[2]
+#cron_string = sys.argv[1]
+#duration    = sys.argv[2]
+cron_string = '* * * * 2'
+duration = 30
 r = Recommender(cron_string,int(duration))
+r.get_recommendations(cron_string,duration)
+"""
 slave_available = r.check_if_slots_available()
 
 print "\n\n*****************************"
@@ -163,3 +172,4 @@ if slave_available:
 else:
     print "NO Slave nodes available for the input cron.\nConsider Cloning a new VM"
 print "\n\n\n"
+"""
