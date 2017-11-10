@@ -17,8 +17,62 @@ class Recommender():
     def get_recommendations(self):
         cron = self.cron
         duration = self.duration
+        weekids = self.parse_cron_data().keys()
+        slaveids = self.schedule_data.keys()
+        new =  self.schedule_data[slaveids[0]][weekids[0]]
+        self.search_in_week(weekids,self.schedule_data[slaveids[0]])
+
+    def get_no_of_slots(self,duration=0):
+        if duration > 0 and duration%Recommender.scale == 0:
+            return duration / 5            
         
-        pass
+    def search_in_week(self,weekids,data):
+        week_availability = {}
+        available_list = []
+        for week_id in weekids:
+            week_availability[week_id] = []
+            week_availability[week_id] = self.search(data[week_id])
+
+        for key in week_availability:
+            if len(available_list) == 0:
+                available_list = week_availability[key]
+            available_list = set(week_availability[key]).intersection(set(available_list))
+
+        self.convert_index_to_times(available_list)        
+
+    def convert_index_to_times(self, available):
+        available = list(available)
+        available.sort()
+        available_times = []
+        temp = 0
+    
+        for index in available:
+            temp = index * 5
+            available_times.append(str(temp/60) + ":" + str(temp%60))            
+
+        for time in available_times:
+            print time
+        
+        
+        
+        
+
+    def search(self,data):
+        avail_indices_week = []
+        num_of_slots = self.get_no_of_slots(self.duration)
+        for index in range(0,len(data)-num_of_slots+1):
+            if data[index] == '0':
+                if self.check_elements(data[index:index+num_of_slots],index,num_of_slots):
+                    avail_indices_week.append(index)
+        return avail_indices_week
+
+    def check_elements(self,array,index,no_of_slots):
+        counter = 0
+        for element in array:
+            if element == '0':
+                counter += 1
+        if counter ==  no_of_slots:
+            return True
 
     """
     Function parse_cron_data
@@ -39,7 +93,6 @@ class Recommender():
                 cron_data[wid] += time_list            
             else:
                 cron_data[wid] = time_list
-        print "CRON:",cron_data
         return cron_data
 
     """
@@ -61,7 +114,6 @@ class Recommender():
         for wid in week_ids:
             weeks[wid] = time_list
             wids.append(str(wid))
-        print "WID,TLIST",wids,time_list
         return wids,time_list    
 
     """
@@ -157,10 +209,10 @@ class Recommender():
 
 #cron_string = sys.argv[1]
 #duration    = sys.argv[2]
-cron_string = '* * * * 2'
-duration = 30
+cron_string = '* * * * 2-5'
+duration = 1800
 r = Recommender(cron_string,int(duration))
-r.get_recommendations(cron_string,duration)
+r.get_recommendations()
 """
 slave_available = r.check_if_slots_available()
 
