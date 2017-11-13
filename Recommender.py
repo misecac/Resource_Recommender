@@ -3,8 +3,38 @@ import sys
 from DataParser import DataParser
 from CronsDataStructure import DataExplorer
 
+class Stack:    
+     def __init__(self):
+         self.items = []
+
+     def isEmpty(self):
+         return self.items == []
+
+     def push(self, item):
+         self.items.append(item)
+
+     def pop(self):
+         return self.items.pop()
+
+     def peek_stack_top(self):         
+         if len(self.items) > 0:
+             return self.items[len(self.items)-1]
+         else:
+             return False
+            
+     def peek_stack_bottom(self):
+         return self.items[0]
+         
+         
+     def printstack(self):
+        print self.items
+
+     def size(self):
+         return len(self.items)
+
 class Recommender():
     scale = 5
+    recommendations_count = 3
     num_elements = 24 * (60 / scale)
     def __init__(self,cron='',duration=0):
         self.picklefile = "C:\\mydata\\Bits\\Courses\\4thSem\\Dissertation\\repository\\data.pickle"
@@ -13,33 +43,80 @@ class Recommender():
         self.cron = cron
         self.duration = duration
         self.input_data = self.parse_cron_data()
-        
+        self.recommendations = {}
+
+    """
+    Desc : Generating the recommendation times for the given input duration
+    """
     def get_recommendations(self):
         cron = self.cron
+        availability = {}
         duration = self.duration
-        weekids = self.parse_cron_data().keys()
+        weekids = self.input_data.keys()
         slaveids = self.schedule_data.keys()
-        new =  self.schedule_data[slaveids[0]][weekids[0]]
-        self.search_in_week(weekids,self.schedule_data[slaveids[0]])
+        self.recommendations[slaveids[0]] = {}
+        availability = self.search_in_week(weekids,self.schedule_data[slaveids[0]])
+        self.recommendations[slaveids[0]] = availability
+        print self.recommendations
 
     def get_no_of_slots(self,duration=0):
         if duration > 0 and duration%Recommender.scale == 0:
             return duration / 5            
         
-    def search_in_week(self,weekids,data):
+    def search_in_week(self,weekids,data):        
         week_availability = {}
         available_list = []
-        for week_id in weekids:
+        for week_id in weekids:            
             week_availability[week_id] = []
-            week_availability[week_id] = self.search(data[week_id])
-
-        for key in week_availability:
+            week_availability[week_id] = self.scan_empty_slots(data[week_id])
+            
+        
+        for key in week_availability:            
             if len(available_list) == 0:
-                available_list = week_availability[key]
+                available_list = week_availability[key]            
             available_list = set(week_availability[key]).intersection(set(available_list))
+        week_availability = self.get_available_blocks(available=available_list)
+        return week_availability
+            
 
-        self.convert_index_to_times(available_list)        
+    def convert_index_to_time(self,indexvalue=0):
+        returnvalue = ''
+        temp = indexvalue * 5
+        returnvalue = str(temp/60) + ":" + str(temp%60)
+        return returnvalue
+        
+    def get_available_blocks(self,available=[]):        
+        available_blocks = []
+        available = list(available)
+        s = Stack()
+        newS = ''
+        counter = 0
+        for item in available:
+            counter += 1
+            v = s.peek_stack_top()
+            if v == item-1:
+                s.push(item)                
+                if counter == len(available):                    
+                    available_blocks.append(self.get_block_boundary_indices(stack_ref = s))
+            else:                
+                if s.size() > 0:
+                    available_blocks.append(self.get_block_boundary_indices(stack_ref = s))
+                else:
+                    s.push(item)                    
+                
+        return available_blocks
 
+    def get_block_boundary_indices(self,stack_ref = [],item=0):
+        returnvalue = {'START':'','END':''}
+        newS = Stack()
+        while not stack_ref.isEmpty():
+            newS.push(stack_ref.pop())        
+        #stack_ref.push(item)
+        returnvalue['START'] = self.convert_index_to_time(indexvalue=newS.peek_stack_top())
+        returnvalue['END']   = self.convert_index_to_time(indexvalue=newS.peek_stack_bottom())
+        return returnvalue
+    
+        
     def convert_index_to_times(self, available):
         available = list(available)
         available.sort()
@@ -47,26 +124,24 @@ class Recommender():
         temp = 0
     
         for index in available:
+            print index
             temp = index * 5
-            available_times.append(str(temp/60) + ":" + str(temp%60))            
+            available_times.append(str(temp/60) + ":" + str(temp%60))
 
         for time in available_times:
-            print time
-        
-        
-        
-        
-
-    def search(self,data):
+            #print time
+            pass
+                       
+    def scan_empty_slots(self,data):
         avail_indices_week = []
         num_of_slots = self.get_no_of_slots(self.duration)
         for index in range(0,len(data)-num_of_slots+1):
             if data[index] == '0':
-                if self.check_elements(data[index:index+num_of_slots],index,num_of_slots):
+                if self.check_if_block_empty(data[index:index+num_of_slots],index,num_of_slots):
                     avail_indices_week.append(index)
         return avail_indices_week
 
-    def check_elements(self,array,index,no_of_slots):
+    def check_if_block_empty(self,array,index,no_of_slots):
         counter = 0
         for element in array:
             if element == '0':
@@ -210,7 +285,7 @@ class Recommender():
 #cron_string = sys.argv[1]
 #duration    = sys.argv[2]
 cron_string = '* * * * 2-5'
-duration = 1800
+duration = 30
 r = Recommender(cron_string,int(duration))
 r.get_recommendations()
 """
