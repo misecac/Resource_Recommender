@@ -74,12 +74,9 @@ class Recommender():
         for week_id in weekids:
             week_availability[week_id] = []
             week_availability[week_id] = self.scan_empty_slots(data[week_id])
-        
+        available_list = week_availability[week_availability.keys()[0]]
         for key in week_availability:
-            if len(available_list) == 0 and len(week_availability[key])!=0:
-                available_list = week_availability[key]            
-            available_list = set(week_availability[key]).intersection(set(available_list))
-            #print available_list
+            available_list = set(week_availability[key]).intersection(set(available_list))            
             
         week_availability = self.get_available_blocks(available=available_list)
         return week_availability
@@ -292,7 +289,7 @@ cron_string = sys.argv[2]
 duration    = sys.argv[3]
 #recommender_mode = 'multiple'
 #cron_string = '* * * * 0-7'
-#duration = 600
+#duration = 720
 
 r = Recommender(cron_string,int(duration))
 
