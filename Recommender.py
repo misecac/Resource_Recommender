@@ -34,7 +34,7 @@ class Stack:
 
 class Recommender():
     scale = 5
-    recommendations_count = 3
+    recommendations_count = 2
     num_elements = 24 * (60 / scale)
     def __init__(self,cron='',duration=0):
         self.picklefile = "C:\\mydata\\Bits\\Courses\\4thSem\\Dissertation\\repository\\data.pickle"
@@ -51,6 +51,8 @@ class Recommender():
     def get_recommendations(self):
         cron = self.cron
         availability = {}
+        counter = 0
+        no_of_recommendations = Recommender.recommendations_count
         duration = self.duration
         weekids = self.input_data.keys()
         slaveids = self.schedule_data.keys()
@@ -58,10 +60,15 @@ class Recommender():
         for slave in self.schedule_data:
              availability = self.search_in_week(weekids,self.schedule_data[slave])
              self.recommendations[slave] = availability
-
+        print "\n*********************** RECOMMENDATIONS ******************************************\n"
         for recommendation in self.recommendations:
-             print recommendation,self.recommendations[recommendation]
-             pass
+             for index in range(0,len(self.recommendations[recommendation])):
+                  if counter >= no_of_recommendations:
+                       break
+                  print "Slave Node Name       : ", recommendation
+                  print "Available Time Slots  : From %s to %s\n"%(self.recommendations[recommendation][index]['From'],self.recommendations[recommendation][index]['To'])
+                  counter += 1
+        print "********************************************************************************\n"     
         
     
     def get_no_of_slots(self,duration=0):
