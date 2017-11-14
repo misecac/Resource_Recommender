@@ -43,7 +43,7 @@ class Recommender():
         self.cron = cron
         self.duration = duration
         self.input_data = self.parse_cron_data()
-        self.recommendations = {}
+        self.recommendations = {}        
         
     """
     Desc : Generating the recommendation times for the given input duration
@@ -61,6 +61,7 @@ class Recommender():
 
         for recommendation in self.recommendations:
              print recommendation,self.recommendations[recommendation]
+             pass
         
     
     def get_no_of_slots(self,duration=0):
@@ -70,14 +71,16 @@ class Recommender():
     def search_in_week(self,weekids,data):        
         week_availability = {}
         available_list = []
-        for week_id in weekids:            
+        for week_id in weekids:
             week_availability[week_id] = []
             week_availability[week_id] = self.scan_empty_slots(data[week_id])
         
-        for key in week_availability:            
-            if len(available_list) == 0:
+        for key in week_availability:
+            if len(available_list) == 0 and len(week_availability[key])!=0:
                 available_list = week_availability[key]            
             available_list = set(week_availability[key]).intersection(set(available_list))
+            #print available_list
+            
         week_availability = self.get_available_blocks(available=available_list)
         return week_availability
             
@@ -134,7 +137,7 @@ class Recommender():
         for time in available_times:            
             pass
                        
-    def scan_empty_slots(self,data):         
+    def scan_empty_slots(self,data):
         avail_indices_week = []
         num_of_slots = self.get_no_of_slots(self.duration)
         for index in range(0,len(data)-num_of_slots+1):
@@ -143,8 +146,7 @@ class Recommender():
                     avail_indices_week.append(index)
         return avail_indices_week
 
-    def check_if_block_empty(self,array,index,no_of_slots):
-         
+    def check_if_block_empty(self,array,index,no_of_slots):         
         counter = 0        
         for element in array:
             if element == '0':
@@ -284,11 +286,13 @@ class Recommender():
             else:
                 found = found and False
         return found
-        
 
 recommender_mode = sys.argv[1]
 cron_string = sys.argv[2]
 duration    = sys.argv[3]
+#recommender_mode = 'multiple'
+#cron_string = '* * * * 0-7'
+#duration = 600
 
 r = Recommender(cron_string,int(duration))
 
